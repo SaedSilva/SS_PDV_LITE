@@ -1,4 +1,4 @@
-### **Product Requirement Document (PRD): SS PDV LITE   "SS PDV LITE"**
+### **Product Requirement Document (PRD): SS PDV LITE**
 
 | **Documento:** | PRD - SS PDV LITE      |
 |:---------------|:-----------------------|
