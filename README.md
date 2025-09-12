@@ -4,7 +4,7 @@
 |:---------------|:-----------------------|
 | **Versão:**    | 1.0                    |
 | **Data:**      | 12 de setembro de 2025 |
-| **Autor:**     | [Saed Silva Sousa]     |
+| **Autor:**     | Saed Silva Sousa       |
 | **Status:**    | Rascunho               |
 
 ### 1. Visão Geral do Projeto
@@ -150,6 +150,5 @@ mercearias e lojas de variedades em geral.
 * **Versão 1.2:** Integração com terminais de pagamento (TEF) para automatizar a transação com cartão.
 * **Versão 1.5:** Módulo de Compras (cadastro de fornecedores e registro de notas de entrada de mercadorias).
 * **Versão 2.0:** Integração com a SEFAZ para emissão de NFC-e.
-* **Versão 2.1:** Versão em nuvem com suporte a múltiplos caixas e acesso remoto aos relatórios.
 
 ---
