@@ -12,6 +12,7 @@ fn main() -> iced::Result {
     iced::application("Teste", State::update, State::view)
         .subscription(State::subscription)
         .theme(State::theme)
+        .centered()
         .run()
 }
 
