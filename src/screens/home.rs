@@ -1,6 +1,6 @@
-use iced::widget::{column, row, text, text_input};
-use iced::{Alignment, Element, Length};
 use crate::helpers::format_int_to_decimal;
+use iced::widget::{column, horizontal_rule, row, text, text_input};
+use iced::{Alignment, Element, Length, Task};
 
 #[derive(Debug)]
 pub struct State {
@@ -40,22 +40,48 @@ impl State {
         .into()
     }
 
+    pub fn update(&mut self, message: Message) -> Task<Message> {
+        match message {
+            Message::OnSearchBarChange(value) => {
+                self.search_bar = value;
+            }
+        }
+
+        Task::none()
+    }
+
     fn product_list(&self) -> Element<Message> {
-        let mut list = column![];
+        let mut list = column![
+            row![
+                text("PRODUTO\nPRECO UNIT.").width(Length::Fill),
+                text("QUANTIDADE"),
+                text("TOTAL"),
+            ]
+            .spacing(16)
+        ];
 
         for product in &self.products {
-            list = list.push(row![
-                column![text(&product.name), text(format_int_to_decimal(product.value)),].width(Length::Fill),
-                text(&product.quantity),
-                text(product.total_value()),
-            ].spacing(16))
+            list = list
+                .push(
+                    row![
+                        column![
+                            text(&product.name),
+                            text(format_int_to_decimal(product.value)),
+                        ]
+                        .width(Length::Fill),
+                        text(product.quantity),
+                        text(format_int_to_decimal(product.total_value())),
+                    ]
+                    .spacing(16),
+                )
+                .push(horizontal_rule(1));
         }
 
         list.into()
     }
 
     fn total_value(&self) -> i32 {
-        self.products.iter().map(|x| x.value * x.quantity).sum()
+        self.products.iter().map(|x| x.total_value()).sum()
     }
 }
 
@@ -72,8 +98,8 @@ struct Product {
 }
 
 impl Product {
-    fn total_value(&self) -> String {
-        format_int_to_decimal(self.quantity * self.value)
+    fn total_value(&self) -> i32 {
+        self.quantity * self.value
     }
 }
 
@@ -82,7 +108,7 @@ impl Default for Product {
         Product {
             name: "Produto".to_string(),
             quantity: 2,
-            value: 10,
+            value: 1050,
         }
     }
 }

@@ -5,7 +5,7 @@ mod screens;
 mod services;
 
 use iced::keyboard::on_key_press;
-use iced::widget::{button, column, container, row};
+use iced::widget::{button, column, container, horizontal_rule, row};
 use iced::{Element, Length, Subscription, Task, Theme};
 
 fn main() -> iced::Result {
@@ -43,20 +43,31 @@ impl State {
             Screen::Home(state) => state.view().map(Message::HomeMessage),
         };
         column![
-            container(content).width(Length::Fill).height(Length::Fill),
+            container(content)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .padding(16),
+            horizontal_rule(1),
             row![
                 button("(F1) INICIO"),
                 button("(F2) PRODUTOS"),
                 button("(F3) ESTOQUE"),
                 button("(F4) FINANCEIRO"),
             ]
+            .padding(16)
             .spacing(16)
         ]
-        .padding(16)
         .into()
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
+        match message {
+            Message::HomeMessage(message) => {
+                if let Screen::Home(state) = &mut self.screen {
+                    return state.update(message).map(Message::HomeMessage);
+                }
+            }
+        }
         Task::none()
     }
 
