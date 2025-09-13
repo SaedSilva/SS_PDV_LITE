@@ -8,10 +8,15 @@ use iced::keyboard::on_key_press;
 use iced::widget::{button, column, container, horizontal_rule, row};
 use iced::{Element, Length, Subscription, Task, Theme};
 use sqlx::migrate::Migrator;
+use sqlx::SqlitePool;
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
-fn main() -> iced::Result {
+#[tokio::main]
+async fn main() -> iced::Result {
+    let pool = SqlitePool::connect("sqlite:database.db").await.unwrap();
+    MIGRATOR.run(&pool).await.unwrap();
+
     iced::application("Teste", State::update, State::view)
         .subscription(State::subscription)
         .theme(State::theme)
