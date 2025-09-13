@@ -4,4 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version = "0.13.1", features = ["debug"] }
+iced = { version = "0.13.1", features = ["debug", "tokio"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "derive", "chrono", "sqlite"] }
+tokio = "1.47.1"
+anyhow = "1.0.99"

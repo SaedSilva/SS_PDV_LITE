@@ -7,6 +7,9 @@ mod services;
 use iced::keyboard::on_key_press;
 use iced::widget::{button, column, container, horizontal_rule, row};
 use iced::{Element, Length, Subscription, Task, Theme};
+use sqlx::migrate::Migrator;
+
+static MIGRATOR: Migrator = sqlx::migrate!();
 
 fn main() -> iced::Result {
     iced::application("Teste", State::update, State::view)
