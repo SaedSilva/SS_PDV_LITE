@@ -47,4 +47,21 @@ impl ProductRepository {
 
         Ok(products)
     }
+
+    pub async fn search_by_ean(&self, ean: &str) -> Result<Vec<Product>> {
+        let product = sqlx::query_as!(
+            Product,
+            "
+            SELECT id, name, price, quantity, ean, created_at, updated_at
+            FROM tb_product
+            WHERE ean = ?
+            LIMIT 10
+            ",
+            ean
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(product)
+    }
 }
