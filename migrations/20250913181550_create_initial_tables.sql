@@ -1,24 +1,24 @@
 -- Add migration script here
-CREATE TABLE Product
+CREATE TABLE tb_product
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT    NOT NULL,
     price      INTEGER NOT NULL,
     quantity   INTEGER NOT NULL,
     ean        TEXT,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME
 );
 
-CREATE TABLE Sale
+CREATE TABLE tb_sale
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     total      INTEGER NOT NULL,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME
 );
 
-CREATE TABLE ProductSale
+CREATE TABLE tb_product_sale
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
@@ -26,21 +26,21 @@ CREATE TABLE ProductSale
     quantity   INTEGER NOT NULL,
     price      INTEGER NOT NULL,
     total      INTEGER NOT NULL,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER,
-    FOREIGN KEY (product_id) REFERENCES Product (id),
-    FOREIGN KEY (sale_id) REFERENCES Sale (id)
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME,
+    FOREIGN KEY (product_id) REFERENCES tb_product (id),
+    FOREIGN KEY (sale_id) REFERENCES tb_sale (id)
 );
 
-CREATE TABLE Purchase
+CREATE TABLE tb_purchase
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     total      INTEGER NOT NULL,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME
 );
 
-CREATE TABLE ProductPurchase
+CREATE TABLE tb_product_purchase
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id  INTEGER NOT NULL,
@@ -48,8 +48,8 @@ CREATE TABLE ProductPurchase
     quantity    INTEGER NOT NULL,
     price       INTEGER NOT NULL,
     total       INTEGER NOT NULL,
-    created_at  INTEGER NOT NULL,
-    updated_at  INTEGER,
-    FOREIGN KEY (product_id) REFERENCES Product (id),
-    FOREIGN KEY (purchase_id) REFERENCES Purchase (id)
+    created_at  DATETIME NOT NULL,
+    updated_at  DATETIME,
+    FOREIGN KEY (product_id) REFERENCES tb_product (id),
+    FOREIGN KEY (purchase_id) REFERENCES tb_purchase (id)
 );

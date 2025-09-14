@@ -3,6 +3,7 @@ mod helpers;
 mod repositories;
 mod screens;
 mod services;
+mod entities;
 
 use iced::keyboard::on_key_press;
 use iced::widget::{button, column, container, horizontal_rule, row};
