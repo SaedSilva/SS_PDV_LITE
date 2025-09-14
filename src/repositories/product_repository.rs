@@ -30,6 +30,22 @@ impl ProductRepository {
         Ok(rec.id)
     }
 
+    pub async fn find_by_id(&self, id: i64) -> Result<Option<Product>> {
+        let product = sqlx::query_as!(
+            Product,
+            "
+            SELECT id, name, price, quantity, ean, created_at, updated_at
+            FROM tb_product
+            WHERE id = ?
+            ",
+            id
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(product)
+    }
+
     pub async fn search_by_name(&self, name: &str) -> Result<Vec<Product>> {
         let name = format!("%{}%", name);
         let products = sqlx::query_as!(
