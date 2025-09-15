@@ -2,7 +2,7 @@ use crate::entities::product::Product;
 use anyhow::Result;
 use sqlx::SqlitePool;
 
-struct ProductRepository {
+pub struct ProductRepository {
     pool: SqlitePool,
 }
 

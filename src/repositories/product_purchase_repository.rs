@@ -1,5 +1,5 @@
 use sqlx::{Pool, Sqlite};
 
-struct ProductPurchaseRepository {
+pub struct ProductPurchaseRepository {
     poll: Pool<Sqlite>
 }
