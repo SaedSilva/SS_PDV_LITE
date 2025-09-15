@@ -5,9 +5,15 @@ pub fn format_int_to_decimal(valor: i32) -> String {
 }
 
 pub fn validate_float(value: &str) -> bool {
+    if value.is_empty() {
+        return true;
+    }
     value.replace(",", ".").parse::<f64>().is_ok()
 }
 
 pub fn validate_int(value: &str) -> bool {
+    if value.is_empty() {
+        return true;
+    }
     value.parse::<i32>().is_ok()
 }
