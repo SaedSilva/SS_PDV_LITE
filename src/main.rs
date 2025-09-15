@@ -8,12 +8,13 @@ mod services;
 use crate::repositories::product_purchase_repository::ProductPurchaseRepository;
 use crate::repositories::product_repository::ProductRepository;
 use crate::services::product_purchase_service::ProductPurchaseService;
-use iced::keyboard::on_key_press;
+use iced::keyboard::{on_key_press, Key};
 use iced::widget::{button, column, container, horizontal_rule, row};
 use iced::{Element, Length, Subscription, Task, Theme};
 use sqlx::migrate::Migrator;
 use sqlx::SqlitePool;
 use std::sync::Arc;
+use iced::keyboard::key::Named;
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
@@ -106,11 +107,14 @@ impl State {
     }
 
     fn theme(&self) -> Theme {
-        Theme::CatppuccinLatte
+        Theme::TokyoNightLight
     }
 
     fn subscription(&self) -> Subscription<Message> {
         on_key_press(|key, _| {
+            if key == Key::Named(Named::F1) {
+
+            }
             println!("{:?}", key);
             None
         })
