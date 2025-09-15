@@ -1,9 +1,10 @@
 use crate::helpers::{format_int_to_decimal, validate_float, validate_float_range, validate_int};
 use crate::services::product_purchase_service::ProductPurchaseService;
-use iced::widget::{button, column, row, scrollable, text, text_input};
+use iced::widget::{button, column, horizontal_space, row, scrollable, text, text_input};
 use iced::{Alignment, Element, Length, Task};
 use std::sync::Arc;
 
+const REMOVE_BUTTON_WIDTH: f32 = 30.0;
 const ID_WIDTH: f32 = 50.0;
 const EAN_WIDTH: f32 = 100.0;
 static NAME_WIDTH: Length = Length::Fill;
@@ -30,8 +31,8 @@ impl State {
                 ean: None,
                 name: "".to_string(),
                 quantity: "1".to_string(),
-                price_unit: "0".to_string(),
-                price_sale: "0".to_string(),
+                price_unit: "0,00".to_string(),
+                price_sale: "0,00".to_string(),
                 percentual: "30,0".to_string(),
                 total: "R$ 0,00".to_string(),
                 total_sale: "R$ 0,00".to_string(),
@@ -41,7 +42,17 @@ impl State {
     }
 
     pub fn view(&self) -> Element<Message> {
-        column![self.product_list(),].spacing(16).into()
+        column![
+            self.product_list(),
+            row![
+                button("ADICIONAR ITEM").on_press(Message::AddProduct),
+                horizontal_space(),
+                button("FINALIZAR COMPRA")
+            ]
+        ]
+        .spacing(16)
+        .align_x(Alignment::End)
+        .into()
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -105,12 +116,18 @@ impl State {
                     ean: None,
                     name: "".to_string(),
                     quantity: "1".to_string(),
-                    price_unit: "0".to_string(),
-                    price_sale: "0".to_string(),
+                    price_unit: "0,00".to_string(),
+                    price_sale: "0,00".to_string(),
                     percentual: "30,0".to_string(),
                     total: "R$ 0,00".to_string(),
                     total_sale: "R$ 0,00".to_string(),
                 });
+            }
+
+            Message::RemoveProduct(index) => {
+                if index < self.products.len() {
+                    self.products.remove(index);
+                }
             }
         }
 
@@ -118,8 +135,9 @@ impl State {
     }
 
     fn product_list(&self) -> Element<Message> {
-        let mut list = column![
+        let mut list_products = column![
             row![
+                text("").width(Length::Fixed(REMOVE_BUTTON_WIDTH)),
                 text("ID").width(Length::Fixed(ID_WIDTH)),
                 text("EAN").width(Length::Fixed(EAN_WIDTH)),
                 text("PRODUTO").width(NAME_WIDTH),
@@ -134,8 +152,11 @@ impl State {
         ];
 
         for (index, product) in self.products.iter().enumerate() {
-            list = list.push(
+            list_products = list_products.push(
                 row![
+                    button("X")
+                        .width(Length::Fixed(REMOVE_BUTTON_WIDTH))
+                        .on_press(Message::RemoveProduct(index)),
                     text(product.id.map_or("None".to_string(), |id| id.to_string())),
                     text_input("EAN", &product.ean.clone().unwrap_or_default())
                         .width(Length::Fixed(EAN_WIDTH))
@@ -162,9 +183,10 @@ impl State {
                 .spacing(16),
             );
         }
-        list = list.push(button("Adicionar Produto").on_press(Message::AddProduct));
 
-        scrollable(list.spacing(8)).into()
+        scrollable(list_products.spacing(8))
+            .height(Length::Fill)
+            .into()
     }
 }
 
@@ -177,6 +199,7 @@ pub enum Message {
     PriceSaleChange(usize, String),
     PercentualChange(usize, String),
     AddProduct,
+    RemoveProduct(usize),
 }
 
 #[derive(Debug, Clone, Default)]
