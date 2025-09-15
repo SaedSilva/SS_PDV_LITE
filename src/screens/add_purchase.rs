@@ -63,7 +63,7 @@ impl State {
                     if let Some(product) = self.products.get_mut(index) {
                         product.quantity = value;
                         product.total = calculate_total(product);
-                        product.total_sale = cauculate_total_sale(product);
+                        product.total_sale = calculate_total_sale(product);
                     }
                 }
             }
@@ -74,7 +74,7 @@ impl State {
                         product.total = calculate_total(product);
                         product.price_sale =
                             format!("{:.2}", calculate_price_sale(product)).replace(".", ",");
-                        product.total_sale = cauculate_total_sale(product);
+                        product.total_sale = calculate_total_sale(product);
                     }
                 }
             }
@@ -84,7 +84,7 @@ impl State {
                         product.price_sale = value;
                         let percentual = calculate_percentual(product);
                         product.percentual = format!("{:.2}", percentual).replace(".", ",");
-                        product.total_sale = cauculate_total_sale(product);
+                        product.total_sale = calculate_total_sale(product);
                     }
                 }
             }
@@ -94,7 +94,7 @@ impl State {
                         product.percentual = value;
                         let price_sale = calculate_price_sale(product);
                         product.price_sale = format!("{:.2}", price_sale).replace(".", ",");
-                        product.total_sale = cauculate_total_sale(product);
+                        product.total_sale = calculate_total_sale(product);
                     }
                 }
             }
@@ -235,7 +235,7 @@ fn calculate_percentual(product: &ProductItem) -> f64 {
     }
 }
 
-fn cauculate_total_sale(product: &ProductItem) -> String {
+fn calculate_total_sale(product: &ProductItem) -> String {
     let quantity = product.quantity.parse::<f64>().unwrap_or(0.0);
     let price_sale = product
         .price_sale
