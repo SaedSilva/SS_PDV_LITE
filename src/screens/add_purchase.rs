@@ -135,22 +135,21 @@ impl State {
     }
 
     fn product_list(&self) -> Element<Message> {
-        let mut list_products = column![
-            row![
-                text("").width(Length::Fixed(REMOVE_BUTTON_WIDTH)),
-                text("ID").width(Length::Fixed(ID_WIDTH)),
-                text("EAN").width(Length::Fixed(EAN_WIDTH)),
-                text("PRODUTO").width(NAME_WIDTH),
-                text("QNTD").width(Length::Fixed(QNTD_WIDTH)),
-                text("P. UNIT.").width(Length::Fixed(PRICE_UNIT_WIDTH)),
-                text("P. VENDA").width(Length::Fixed(PRICE_SALE_WIDTH)),
-                text("%").width(Length::Fixed(PERCENTUAL_WIDTH)),
-                text("TOTAL COMPRA").width(Length::Fixed(TOTAL_WIDTH)),
-                text("TOTAL VENDA").width(Length::Fixed(TOTAL_SALE_WIDTH)),
-            ]
-            .spacing(16)
-        ];
+        let header = row![
+            text("").width(Length::Fixed(REMOVE_BUTTON_WIDTH)),
+            text("ID").width(Length::Fixed(ID_WIDTH)),
+            text("EAN").width(Length::Fixed(EAN_WIDTH)),
+            text("PRODUTO").width(NAME_WIDTH),
+            text("QNTD").width(Length::Fixed(QNTD_WIDTH)),
+            text("P. UNIT.").width(Length::Fixed(PRICE_UNIT_WIDTH)),
+            text("P. VENDA").width(Length::Fixed(PRICE_SALE_WIDTH)),
+            text("%").width(Length::Fixed(PERCENTUAL_WIDTH)),
+            text("TOTAL COMPRA").width(Length::Fixed(TOTAL_WIDTH)),
+            text("TOTAL VENDA").width(Length::Fixed(TOTAL_SALE_WIDTH)),
+        ]
+        .spacing(16);
 
+        let mut list_products = column![];
         for (index, product) in self.products.iter().enumerate() {
             list_products = list_products.push(
                 row![
@@ -184,9 +183,11 @@ impl State {
             );
         }
 
-        scrollable(list_products.spacing(8))
-            .height(Length::Fill)
-            .into()
+        column![
+            header,
+            scrollable(list_products.spacing(8)).height(Length::Fill)
+        ]
+        .into()
     }
 }
 

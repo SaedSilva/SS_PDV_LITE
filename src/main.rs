@@ -4,6 +4,7 @@ mod helpers;
 mod repositories;
 mod screens;
 mod services;
+mod components;
 
 use crate::repositories::product_purchase_repository::ProductPurchaseRepository;
 use crate::repositories::product_repository::ProductRepository;
