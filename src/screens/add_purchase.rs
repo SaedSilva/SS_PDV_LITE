@@ -38,6 +38,7 @@ pub enum Message {
     PriceSaleChange(usize, String),
     PercentualChange(usize, String),
     AddProduct,
+    FinishPurchase,
     RemoveProduct(usize),
     SearchProduct(usize),
     CloseSearch,
@@ -81,7 +82,7 @@ impl State {
                 row![
                     button("ADICIONAR ITEM").on_press(Message::AddProduct),
                     horizontal_space(),
-                    button("FINALIZAR COMPRA")
+                    button("FINALIZAR COMPRA").on_press(Message::FinishPurchase),
                 ]
             ]
             .spacing(16)
@@ -190,6 +191,14 @@ impl State {
             Message::ChangeProductsSearch(value) => {
                 self.search_products = value;
             }
+            Message::FinishPurchase => {
+                let products = self.products.iter().map(|x| x.to_product()).collect();
+                let product_purchase_service = self.product_purchase_service.clone();
+                return Task::perform(
+                    async move { product_purchase_service.add_purchase(products).await },
+                    |_| Message::CloseSearch,
+                );
+            }
         }
 
         Task::none()
@@ -255,20 +264,20 @@ impl State {
     }
 
     fn search(&self) -> Element<Message> {
-        let mut products = row![];
+        let mut products = column![];
 
         for product in &self.search_products {
-            products = products.push(
+            products = products.push(button(
                 row![
                     text(product.id.to_string()).width(Length::Fixed(ID_WIDTH)),
                     text(product.ean.clone().unwrap_or_default()).width(Length::Fixed(EAN_WIDTH)),
                     text(&product.name).width(NAME_WIDTH),
-                    text(format_int_to_decimal(product.price))
+                    text(format_int_to_decimal(product.price_sale))
                         .width(Length::Fixed(PRICE_UNIT_WIDTH)),
                 ]
                 .spacing(16)
                 .align_y(Alignment::Center),
-            );
+            ));
         }
 
         column![
@@ -294,6 +303,50 @@ struct ProductItem {
     percentual: String,
     total: String,
     total_sale: String,
+}
+
+impl ProductItem {
+    fn to_product(&self) -> Product {
+        let price_sale = self
+            .price_sale
+            .replace(",", ".")
+            .parse::<f64>()
+            .unwrap_or(0.0);
+        let price_purchase = self
+            .price_unit
+            .replace(",", ".")
+            .parse::<f64>()
+            .unwrap_or(0.0);
+        let quantity = self.quantity.parse::<i64>().unwrap_or(0);
+        Product::new(
+            self.name.clone(),
+            (price_sale * 100.0) as i64,
+            (price_purchase * 100.0) as i64,
+            quantity,
+            self.ean.clone(),
+        )
+    }
+
+    fn from_product(product: &Product) -> Self {
+        let price_sale = product.price_sale as f64 / 100.0;
+        let price_purchase = product.price_purchase as f64 / 100.0;
+        let percentual = if price_purchase == 0.0 {
+            0.0
+        } else {
+            ((price_sale - price_purchase) / price_purchase) * 100.0
+        };
+        Self {
+            id: Some(product.id),
+            ean: product.ean.clone(),
+            name: product.name.clone(),
+            quantity: product.quantity.to_string(),
+            price_unit: format!("{:.2}", price_purchase).replace(".", ","),
+            price_sale: format!("{:.2}", price_sale).replace(".", ","),
+            percentual: format!("{:.2}", percentual).replace(".", ","),
+            total: format_int_to_decimal(product.price_sale * product.quantity),
+            total_sale: format_int_to_decimal(product.price_sale * product.quantity),
+        }
+    }
 }
 
 fn calculate_total(product: &ProductItem) -> String {

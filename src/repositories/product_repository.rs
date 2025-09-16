@@ -15,12 +15,13 @@ impl ProductRepository {
     pub async fn insert(&self, product: &Product) -> Result<i64> {
         let rec = sqlx::query!(
             r#"
-            INSERT INTO tb_product (name, price, quantity, ean, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO tb_product (name, price_sale, price_purchase, quantity, ean, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
             RETURNING id
             "#,
             product.name,
-            product.price,
+            product.price_sale,
+            product.price_purchase,
             product.quantity,
             product.ean,
             product.created_at
@@ -35,7 +36,7 @@ impl ProductRepository {
         let product = sqlx::query_as!(
             Product,
             "
-            SELECT id, name, price, quantity, ean, created_at, updated_at
+            SELECT id, name, price_sale, price_purchase, quantity, ean, created_at, updated_at
             FROM tb_product
             WHERE id = ?
             ",
@@ -52,7 +53,7 @@ impl ProductRepository {
         let products = sqlx::query_as!(
             Product,
             "
-            SELECT id, name, price, quantity, ean, created_at, updated_at
+            SELECT id, name, price_sale, price_purchase, quantity, ean, created_at, updated_at
             FROM tb_product
             WHERE name LIKE ?
             LIMIT 10
@@ -69,7 +70,7 @@ impl ProductRepository {
         let product = sqlx::query_as!(
             Product,
             "
-            SELECT id, name, price, quantity, ean, created_at, updated_at
+            SELECT id, name, price_sale, price_purchase, quantity, ean, created_at, updated_at
             FROM tb_product
             WHERE ean = ?
             LIMIT 10
