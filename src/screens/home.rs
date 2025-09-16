@@ -80,7 +80,7 @@ impl State {
         list.into()
     }
 
-    fn total_value(&self) -> i32 {
+    fn total_value(&self) -> i64 {
         self.products.iter().map(|x| x.total_value()).sum()
     }
 }
@@ -93,13 +93,13 @@ pub enum Message {
 #[derive(Debug)]
 struct Product {
     name: String,
-    quantity: i32,
-    value: i32,
+    quantity: i64,
+    value: i64,
 }
 
 impl Product {
-    fn total_value(&self) -> i32 {
-        self.quantity * self.value
+    fn total_value(&self) -> i64 {
+        (self.quantity * self.value)
     }
 }
 

@@ -1,5 +1,7 @@
+use crate::entities::product::Product;
 use crate::helpers::{format_int_to_decimal, validate_float, validate_float_range, validate_int};
 use crate::services::product_purchase_service::ProductPurchaseService;
+use crate::services::product_service::ProductService;
 use iced::widget::{button, column, horizontal_space, row, scrollable, text, text_input};
 use iced::{Alignment, Element, Length, Task};
 use std::sync::Arc;
@@ -11,21 +13,46 @@ static NAME_WIDTH: Length = Length::Fill;
 const QNTD_WIDTH: f32 = 70.0;
 const PRICE_UNIT_WIDTH: f32 = 100.0;
 const PRICE_SALE_WIDTH: f32 = 100.0;
-const PERCENTUAL_WIDTH: f32 = 100.0;
+const PERCENTUAL_WIDTH: f32 = 50.0;
 const TOTAL_WIDTH: f32 = 120.0;
 const TOTAL_SALE_WIDTH: f32 = 120.0;
 
 #[derive(Debug)]
 pub struct State {
     product_purchase_service: Arc<ProductPurchaseService>,
+    product_service: Arc<ProductService>,
     products: Vec<ProductItem>,
     total: String,
+    show_search: bool,
+    search_index: Option<usize>,
+    search_text: String,
+    search_products: Vec<Product>,
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    EanChange(usize, String),
+    NameChange(usize, String),
+    QuantityChange(usize, String),
+    PriceUnitChange(usize, String),
+    PriceSaleChange(usize, String),
+    PercentualChange(usize, String),
+    AddProduct,
+    RemoveProduct(usize),
+    SearchProduct(usize),
+    CloseSearch,
+    SearchTextChange(String),
+    ChangeProductsSearch(Vec<Product>),
 }
 
 impl State {
-    pub fn new(product_purchase_service: Arc<ProductPurchaseService>) -> Self {
+    pub fn new(
+        product_purchase_service: Arc<ProductPurchaseService>,
+        product_service: Arc<ProductService>,
+    ) -> Self {
         Self {
             product_purchase_service,
+            product_service,
             products: vec![ProductItem {
                 id: None,
                 ean: None,
@@ -38,21 +65,29 @@ impl State {
                 total_sale: "R$ 0,00".to_string(),
             }],
             total: "R$ 0,00".to_string(),
+            show_search: false,
+            search_index: None,
+            search_text: "".to_string(),
+            search_products: vec![],
         }
     }
 
     pub fn view(&self) -> Element<Message> {
-        column![
-            self.product_list(),
-            row![
-                button("ADICIONAR ITEM").on_press(Message::AddProduct),
-                horizontal_space(),
-                button("FINALIZAR COMPRA")
+        if (self.show_search) {
+            self.search()
+        } else {
+            column![
+                self.product_list(),
+                row![
+                    button("ADICIONAR ITEM").on_press(Message::AddProduct),
+                    horizontal_space(),
+                    button("FINALIZAR COMPRA")
+                ]
             ]
-        ]
-        .spacing(16)
-        .align_x(Alignment::End)
-        .into()
+            .spacing(16)
+            .align_x(Alignment::End)
+            .into()
+        }
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -109,7 +144,6 @@ impl State {
                     }
                 }
             }
-
             Message::AddProduct => {
                 self.products.push(ProductItem {
                     id: None,
@@ -123,11 +157,38 @@ impl State {
                     total_sale: "R$ 0,00".to_string(),
                 });
             }
-
             Message::RemoveProduct(index) => {
                 if index < self.products.len() {
                     self.products.remove(index);
                 }
+            }
+            Message::SearchProduct(index) => {
+                self.show_search = true;
+                self.search_index = Some(index);
+                self.search_text = "".to_string();
+                self.search_products = vec![];
+            }
+            Message::CloseSearch => {
+                self.show_search = false;
+                self.search_index = None;
+                self.search_text = "".to_string();
+                self.search_products = vec![];
+            }
+            Message::SearchTextChange(value) => {
+                self.search_text = value.to_uppercase();
+                if value.is_empty() {
+                    self.search_products = vec![];
+                } else {
+                    let product_service = self.product_service.clone();
+                    let search_text = self.search_text.clone();
+                    return Task::perform(
+                        async move { product_service.search_products_by_name(&search_text).await },
+                        Message::ChangeProductsSearch,
+                    );
+                }
+            }
+            Message::ChangeProductsSearch(value) => {
+                self.search_products = value;
             }
         }
 
@@ -160,9 +221,12 @@ impl State {
                     text_input("EAN", &product.ean.clone().unwrap_or_default())
                         .width(Length::Fixed(EAN_WIDTH))
                         .on_input(move |value| Message::EanChange(index, value)),
-                    text_input("Nome", &product.name)
-                        .width(NAME_WIDTH)
-                        .on_input(move |value| Message::NameChange(index, value)),
+                    row![
+                        text_input("Nome", &product.name)
+                            .on_input(move |value| Message::NameChange(index, value)),
+                        button("BUSCAR").on_press(Message::SearchProduct(index))
+                    ]
+                    .width(NAME_WIDTH),
                     text_input("Quantidade", &product.quantity)
                         .width(Length::Fixed(QNTD_WIDTH))
                         .on_input(move |value| Message::QuantityChange(index, value)),
@@ -189,18 +253,34 @@ impl State {
         ]
         .into()
     }
-}
 
-#[derive(Debug, Clone)]
-pub enum Message {
-    EanChange(usize, String),
-    NameChange(usize, String),
-    QuantityChange(usize, String),
-    PriceUnitChange(usize, String),
-    PriceSaleChange(usize, String),
-    PercentualChange(usize, String),
-    AddProduct,
-    RemoveProduct(usize),
+    fn search(&self) -> Element<Message> {
+        let mut products = row![];
+
+        for product in &self.search_products {
+            products = products.push(
+                row![
+                    text(product.id.to_string()).width(Length::Fixed(ID_WIDTH)),
+                    text(product.ean.clone().unwrap_or_default()).width(Length::Fixed(EAN_WIDTH)),
+                    text(&product.name).width(NAME_WIDTH),
+                    text(format_int_to_decimal(product.price))
+                        .width(Length::Fixed(PRICE_UNIT_WIDTH)),
+                ]
+                .spacing(16)
+                .align_y(Alignment::Center),
+            );
+        }
+
+        column![
+            button("FECHAR").on_press(Message::CloseSearch),
+            text_input("DIGITE O NOME DO PRODUTO", &self.search_text)
+                .on_input(Message::SearchTextChange)
+                .width(Length::Fill),
+            products
+        ]
+        .spacing(16)
+        .into()
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -223,7 +303,7 @@ fn calculate_total(product: &ProductItem) -> String {
         .replace(",", ".")
         .parse::<f64>()
         .unwrap_or(0.0);
-    let total = (quantity * price_unit * 100.0) as i32;
+    let total = (quantity * price_unit * 100.0) as i64;
     format_int_to_decimal(total)
 }
 
@@ -266,6 +346,6 @@ fn calculate_total_sale(product: &ProductItem) -> String {
         .replace(",", ".")
         .parse::<f64>()
         .unwrap_or(0.0);
-    let total_sale = (quantity * price_sale * 100.0) as i32;
+    let total_sale = (quantity * price_sale * 100.0) as i64;
     format_int_to_decimal(total_sale)
 }

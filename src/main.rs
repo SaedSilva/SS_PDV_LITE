@@ -4,18 +4,18 @@ mod helpers;
 mod repositories;
 mod screens;
 mod services;
-mod components;
 
 use crate::repositories::product_purchase_repository::ProductPurchaseRepository;
 use crate::repositories::product_repository::ProductRepository;
 use crate::services::product_purchase_service::ProductPurchaseService;
+use crate::services::product_service::ProductService;
+use iced::keyboard::key::Named;
 use iced::keyboard::{on_key_press, Key};
 use iced::widget::{button, column, container, horizontal_rule, row};
 use iced::{Element, Length, Subscription, Task, Theme};
 use sqlx::migrate::Migrator;
 use sqlx::SqlitePool;
 use std::sync::Arc;
-use iced::keyboard::key::Named;
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
@@ -25,7 +25,10 @@ async fn main() -> iced::Result {
     MIGRATOR.run(&pool).await.unwrap();
     let product_repository = Arc::new(ProductRepository::new(pool.clone()));
     let product_purchase_repository = Arc::new(ProductPurchaseRepository::new(pool.clone()));
-    let product_service = Arc::new(ProductPurchaseService::new(
+    let product_service = Arc::new(ProductService::new(
+        product_repository.clone(),
+    ));
+    let product_purchase_service = Arc::new(ProductPurchaseService::new(
         product_purchase_repository,
         product_repository,
     ));
@@ -34,7 +37,7 @@ async fn main() -> iced::Result {
         .subscription(State::subscription)
         .theme(State::theme)
         .centered()
-        .run_with(|| State::new(product_service))
+        .run_with(|| State::new(product_purchase_service, product_service))
 }
 
 #[derive(Debug, Clone)]
@@ -56,11 +59,15 @@ struct State {
 }
 
 impl State {
-    fn new(product_purchase_service: Arc<ProductPurchaseService>) -> (Self, Task<Message>) {
+    fn new(
+        product_purchase_service: Arc<ProductPurchaseService>,
+        product_service: Arc<ProductService>,
+    ) -> (Self, Task<Message>) {
         (
             Self {
                 screen: Screen::AddPurchase(screens::add_purchase::State::new(
                     product_purchase_service.clone(),
+                    product_service.clone(),
                 )),
                 product_purchase_service,
             },
@@ -113,9 +120,7 @@ impl State {
 
     fn subscription(&self) -> Subscription<Message> {
         on_key_press(|key, _| {
-            if key == Key::Named(Named::F1) {
-
-            }
+            if key == Key::Named(Named::F1) {}
             println!("{:?}", key);
             None
         })

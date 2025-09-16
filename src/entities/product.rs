@@ -1,5 +1,6 @@
 use chrono::{Local, NaiveDateTime};
 
+#[derive(Debug, Clone)]
 pub struct Product {
     pub id: i64,
     pub name: String,
