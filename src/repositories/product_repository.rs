@@ -1,18 +1,20 @@
 use crate::entities::product::Product;
 use anyhow::Result;
-use sqlx::SqlitePool;
+use chrono::Utc;
+use sqlx::{Sqlite, SqlitePool};
 
 #[derive(Debug)]
-pub struct ProductRepository {
-    pool: SqlitePool,
-}
+pub struct ProductRepository;
 
 impl ProductRepository {
-    pub fn new(pool: SqlitePool) -> Self {
-        Self { pool }
+    pub fn new() -> Self {
+        Self {}
     }
 
-    pub async fn insert(&self, product: &Product) -> Result<i64> {
+    pub async fn insert<'e, E: sqlx::Executor<'e, Database = Sqlite>>(
+        executor: E,
+        product: &Product,
+    ) -> Result<i64> {
         let rec = sqlx::query!(
             r#"
             INSERT INTO tb_product (name, price_sale, price_purchase, quantity, ean, created_at)
@@ -26,13 +28,41 @@ impl ProductRepository {
             product.ean,
             product.created_at
         )
-        .fetch_one(&self.pool)
+        .fetch_one(executor)
         .await?;
 
         Ok(rec.id)
     }
 
-    pub async fn find_by_id(&self, id: i64) -> Result<Option<Product>> {
+    pub async fn update<'e, E: sqlx::Executor<'e, Database = Sqlite>>(
+        executor: E,
+        product: &Product,
+    ) -> Result<()> {
+        let updated_at = Utc::now().naive_local();
+        sqlx::query!(
+            r#"
+            UPDATE tb_product
+            SET name = ?, price_sale = ?, price_purchase = ?, quantity = ?, ean = ?, updated_at = ?
+            WHERE id = ?
+            "#,
+            product.name,
+            product.price_sale,
+            product.price_purchase,
+            product.quantity,
+            product.ean,
+            updated_at,
+            product.id
+        )
+        .execute(executor)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn find_by_id<'e, E: sqlx::Executor<'e, Database = Sqlite>>(
+        executor: E,
+        id: i64,
+    ) -> Result<Option<Product>> {
         let product = sqlx::query_as!(
             Product,
             "
@@ -42,13 +72,16 @@ impl ProductRepository {
             ",
             id
         )
-        .fetch_optional(&self.pool)
+        .fetch_optional(executor)
         .await?;
 
         Ok(product)
     }
 
-    pub async fn search_by_name(&self, name: &str) -> Result<Vec<Product>> {
+    pub async fn search_by_name<'e, E: sqlx::Executor<'e, Database = Sqlite>>(
+        executor: E,
+        name: &str,
+    ) -> Result<Vec<Product>> {
         let name = format!("%{}%", name);
         let products = sqlx::query_as!(
             Product,
@@ -60,13 +93,16 @@ impl ProductRepository {
             ",
             name
         )
-        .fetch_all(&self.pool)
+        .fetch_all(executor)
         .await?;
 
         Ok(products)
     }
 
-    pub async fn search_by_ean(&self, ean: &str) -> Result<Vec<Product>> {
+    pub async fn search_by_ean<'e, E: sqlx::Executor<'e, Database = Sqlite>>(
+        executor: E,
+        ean: &str,
+    ) -> Result<Vec<Product>> {
         let product = sqlx::query_as!(
             Product,
             "
@@ -77,7 +113,7 @@ impl ProductRepository {
             ",
             ean
         )
-        .fetch_all(&self.pool)
+        .fetch_all(executor)
         .await?;
 
         Ok(product)

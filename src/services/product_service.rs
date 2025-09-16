@@ -1,20 +1,19 @@
 use crate::entities::product::Product;
 use crate::repositories::product_repository::ProductRepository;
-use std::sync::Arc;
+use sqlx::SqlitePool;
 
 #[derive(Debug)]
 pub struct ProductService {
-    product_repository: Arc<ProductRepository>,
+    pool: SqlitePool,
 }
 
 impl ProductService {
-    pub fn new(product_repository: Arc<ProductRepository>) -> Self {
-        Self { product_repository }
+    pub fn new(pool: SqlitePool) -> Self {
+        Self { pool }
     }
 
     pub async fn search_products_by_name(&self, name: &str) -> Vec<Product> {
-        self.product_repository
-            .search_by_name(name)
+        ProductRepository::search_by_name(&self.pool, name)
             .await
             .unwrap_or(vec![])
     }

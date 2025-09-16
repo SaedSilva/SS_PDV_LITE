@@ -5,8 +5,6 @@ mod repositories;
 mod screens;
 mod services;
 
-use crate::repositories::product_purchase_repository::ProductPurchaseRepository;
-use crate::repositories::product_repository::ProductRepository;
 use crate::services::product_purchase_service::ProductPurchaseService;
 use crate::services::product_service::ProductService;
 use iced::keyboard::key::Named;
@@ -23,15 +21,8 @@ static MIGRATOR: Migrator = sqlx::migrate!();
 async fn main() -> iced::Result {
     let pool = SqlitePool::connect("sqlite:database.db").await.unwrap();
     MIGRATOR.run(&pool).await.unwrap();
-    let product_repository = Arc::new(ProductRepository::new(pool.clone()));
-    let product_purchase_repository = Arc::new(ProductPurchaseRepository::new(pool.clone()));
-    let product_service = Arc::new(ProductService::new(
-        product_repository.clone(),
-    ));
-    let product_purchase_service = Arc::new(ProductPurchaseService::new(
-        product_purchase_repository,
-        product_repository,
-    ));
+    let product_service = Arc::new(ProductService::new(pool.clone()));
+    let product_purchase_service = Arc::new(ProductPurchaseService::new(pool.clone()));
 
     iced::application("Teste", State::update, State::view)
         .subscription(State::subscription)
