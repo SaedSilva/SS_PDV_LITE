@@ -44,6 +44,7 @@ pub enum Message {
     CloseSearch,
     SearchTextChange(String),
     ChangeProductsSearch(Vec<Product>),
+    ProductSelected(usize, Product),
 }
 
 impl State {
@@ -199,6 +200,19 @@ impl State {
                     |_| Message::CloseSearch,
                 );
             }
+            Message::ProductSelected(index, value) => {
+                if let Some(search_index) = self.search_index {
+                    if let Some(product_item) = self.products.get_mut(search_index) {
+                        *product_item = ProductItem::from_product(&value);
+                        product_item.total = calculate_total(product_item);
+                        product_item.total_sale = calculate_total_sale(product_item);
+                    }
+                }
+                self.show_search = false;
+                self.search_index = None;
+                self.search_text = "".to_string();
+                self.search_products = vec![];
+            }
         }
 
         Task::none()
@@ -226,7 +240,8 @@ impl State {
                     button("X")
                         .width(Length::Fixed(REMOVE_BUTTON_WIDTH))
                         .on_press(Message::RemoveProduct(index)),
-                    text(product.id.map_or("None".to_string(), |id| id.to_string())),
+                    text(product.id.map_or("None".to_string(), |id| id.to_string()))
+                        .width(Length::Fixed(ID_WIDTH)),
                     text_input("EAN", &product.ean.clone().unwrap_or_default())
                         .width(Length::Fixed(EAN_WIDTH))
                         .on_input(move |value| Message::EanChange(index, value)),
@@ -267,17 +282,26 @@ impl State {
         let mut products = column![];
 
         for product in &self.search_products {
-            products = products.push(button(
-                row![
-                    text(product.id.to_string()).width(Length::Fixed(ID_WIDTH)),
-                    text(product.ean.clone().unwrap_or_default()).width(Length::Fixed(EAN_WIDTH)),
-                    text(&product.name).width(NAME_WIDTH),
-                    text(format_int_to_decimal(product.price_sale))
-                        .width(Length::Fixed(PRICE_UNIT_WIDTH)),
-                ]
-                .spacing(16)
-                .align_y(Alignment::Center),
-            ));
+            products = products
+                .push(
+                    button(
+                        row![
+                            text(product.id.to_string()).width(Length::Fixed(ID_WIDTH)),
+                            text(product.ean.clone().unwrap_or_default())
+                                .width(Length::Fixed(EAN_WIDTH)),
+                            text(&product.name).width(NAME_WIDTH),
+                            text(format_int_to_decimal(product.price_sale))
+                                .width(Length::Fixed(PRICE_UNIT_WIDTH)),
+                        ]
+                        .spacing(16)
+                        .align_y(Alignment::Center),
+                    )
+                    .on_press(Message::ProductSelected(
+                        self.search_index.unwrap(),
+                        product.clone(),
+                    )),
+                )
+                .spacing(8);
         }
 
         column![
@@ -339,7 +363,7 @@ impl ProductItem {
             id: Some(product.id),
             ean: product.ean.clone(),
             name: product.name.clone(),
-            quantity: product.quantity.to_string(),
+            quantity: "1".to_string(),
             price_unit: format!("{:.2}", price_purchase).replace(".", ","),
             price_sale: format!("{:.2}", price_sale).replace(".", ","),
             percentual: format!("{:.2}", percentual).replace(".", ","),
