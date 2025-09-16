@@ -83,7 +83,11 @@ impl State {
                 row![
                     button("ADICIONAR ITEM").on_press(Message::AddProduct),
                     horizontal_space(),
-                    button("FINALIZAR COMPRA").on_press(Message::FinishPurchase),
+                    row![
+                        text("TOTAL: "),
+                        text(self.total().clone()),
+                        button("FINALIZAR COMPRA").on_press(Message::FinishPurchase)
+                    ].spacing(8).align_y(Alignment::Center),
                 ]
             ]
             .spacing(16)
@@ -313,6 +317,20 @@ impl State {
         ]
         .spacing(16)
         .into()
+    }
+
+    fn total(&self) -> String {
+        let mut total = 0;
+        for product in &self.products {
+            let quantity = product.quantity.parse::<i64>().unwrap_or(0);
+            let price_unit = product
+                .price_unit
+                .replace(",", ".")
+                .parse::<f64>()
+                .unwrap_or(0.0);
+            total += (quantity as f64 * price_unit * 100.0) as i64;
+        }
+        format_int_to_decimal(total)
     }
 }
 
