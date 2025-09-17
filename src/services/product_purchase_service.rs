@@ -20,8 +20,10 @@ impl ProductPurchaseService {
 
     pub async fn add_purchase(&self, products: Vec<Product>) -> Result<()> {
         let mut tx = self.pool.begin().await?;
+        let now = Utc::now().naive_local();
         let total = products.iter().map(|p| p.price_purchase * p.quantity).sum();
-        let purchase_id = PurchaseRepository::insert(&mut *tx, &Purchase::new(total)).await?;
+        let purchase_id =
+            PurchaseRepository::insert(&mut *tx, &Purchase::new(0, total, now)).await?;
 
         for product in products.into_iter().as_mut_slice() {
             let product_id = if product.id == 0 {
@@ -38,12 +40,13 @@ impl ProductPurchaseService {
             ProductPurchaseRepository::insert(
                 &mut *tx,
                 &ProductPurchase::new(
+                    0,
                     product_id,
                     purchase_id,
                     product.quantity,
                     product.price_purchase,
                     product.quantity * product.price_purchase,
-                    Utc::now().naive_local(),
+                    now,
                 ),
             )
             .await?;

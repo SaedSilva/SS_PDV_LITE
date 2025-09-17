@@ -14,20 +14,22 @@ pub struct Product {
 
 impl Product {
     pub fn new(
+        id: i64,
         name: String,
         price_sale: i64,
         price_purchase: i64,
         quantity: i64,
         ean: Option<String>,
+        created_at: NaiveDateTime,
     ) -> Self {
         Self {
-            id: 0, // Will be set by the database
+            id,
             name,
             price_sale,
             price_purchase,
             quantity,
             ean,
-            created_at: Local::now().naive_local(),
+            created_at,
             updated_at: None,
         }
     }

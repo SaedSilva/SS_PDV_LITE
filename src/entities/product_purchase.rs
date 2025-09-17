@@ -14,6 +14,7 @@ pub struct ProductPurchase {
 
 impl ProductPurchase {
     pub fn new(
+        id: i64,
         product_id: i64,
         purchase_id: i64,
         price: i64,
@@ -22,7 +23,7 @@ impl ProductPurchase {
         created_at: NaiveDateTime,
     ) -> Self {
         Self {
-            id: 0, // Will be set by the database
+            id,
             product_id,
             purchase_id,
             price,

@@ -5,6 +5,7 @@ use crate::services::product_service::ProductService;
 use iced::widget::{button, column, horizontal_space, row, scrollable, text, text_input};
 use iced::{Alignment, Element, Length, Task};
 use std::sync::Arc;
+use chrono::Local;
 
 const REMOVE_BUTTON_WIDTH: f32 = 30.0;
 const ID_WIDTH: f32 = 50.0;
@@ -360,15 +361,15 @@ impl ProductItem {
             .parse::<f64>()
             .unwrap_or(0.0);
         let quantity = self.quantity.parse::<i64>().unwrap_or(0);
-        let mut p = Product::new(
+        Product::new(
+            self.id.unwrap_or(0),
             self.name.clone(),
             (price_sale * 100.0) as i64,
             (price_purchase * 100.0) as i64,
             quantity,
             self.ean.clone(),
-        );
-        p.id = self.id.unwrap_or(0);
-        p
+            Local::now().naive_local()
+        )
     }
 
     fn from_product(product: &Product) -> Self {

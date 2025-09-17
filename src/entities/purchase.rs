@@ -1,4 +1,4 @@
-use chrono::{Local, NaiveDateTime};
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Clone)]
 pub struct Purchase {
@@ -9,11 +9,11 @@ pub struct Purchase {
 }
 
 impl Purchase {
-    pub fn new(total: i64) -> Self {
+    pub fn new(id: i64, total: i64, created_at: NaiveDateTime) -> Self {
         Self {
-            id: 0, // Will be set by the database
+            id,
             total,
-            created_at: Local::now().naive_local(),
+            created_at,
             updated_at: None,
         }
     }
