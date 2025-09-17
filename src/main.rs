@@ -33,6 +33,8 @@ async fn main() -> iced::Result {
 
 #[derive(Debug, Clone)]
 enum Message {
+    NavigateToHome,
+    NavigateToAddPurchase,
     Home(screens::home::Message),
     AddPurchase(screens::add_purchase::Message),
 }
@@ -47,6 +49,7 @@ enum Screen {
 struct State {
     screen: Screen,
     product_purchase_service: Arc<ProductPurchaseService>,
+    product_service: Arc<ProductService>,
 }
 
 impl State {
@@ -61,6 +64,7 @@ impl State {
                     product_service.clone(),
                 )),
                 product_purchase_service,
+                product_service,
             },
             Task::none(),
         )
@@ -101,6 +105,16 @@ impl State {
                     return state.update(message).map(Message::AddPurchase);
                 }
             }
+
+            Message::NavigateToHome => {
+                self.screen = Screen::Home(screens::home::State::default());
+            }
+            Message::NavigateToAddPurchase => {
+                self.screen = Screen::AddPurchase(screens::add_purchase::State::new(
+                    self.product_purchase_service.clone(),
+                    self.product_service.clone(),
+                ));
+            }
         }
         Task::none()
     }
@@ -111,7 +125,18 @@ impl State {
 
     fn subscription(&self) -> Subscription<Message> {
         on_key_press(|key, _| {
-            if key == Key::Named(Named::F1) {}
+            match key {
+                Key::Named(Named::F1) => {
+                    return Some(Message::NavigateToHome);
+                }
+                Key::Named(Named::F2) => {
+                    return Some(Message::NavigateToAddPurchase);
+                }
+                Key::Named(Named::F3) => {}
+                Key::Named(Named::F4) => {}
+                _ => return None,
+            }
+
             println!("{:?}", key);
             None
         })
