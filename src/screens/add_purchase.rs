@@ -360,13 +360,15 @@ impl ProductItem {
             .parse::<f64>()
             .unwrap_or(0.0);
         let quantity = self.quantity.parse::<i64>().unwrap_or(0);
-        Product::new(
+        let mut p = Product::new(
             self.name.clone(),
             (price_sale * 100.0) as i64,
             (price_purchase * 100.0) as i64,
             quantity,
             self.ean.clone(),
-        )
+        );
+        p.id = self.id.unwrap_or(0);
+        p
     }
 
     fn from_product(product: &Product) -> Self {
