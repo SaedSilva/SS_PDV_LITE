@@ -1,12 +1,13 @@
+mod components;
 mod config;
 mod entities;
 mod helpers;
 mod repositories;
 mod screens;
 mod services;
-mod components;
 
 use crate::services::product_purchase_service::ProductPurchaseService;
+use crate::services::product_sale_service::ProductSaleService;
 use crate::services::product_service::ProductService;
 use iced::keyboard::key::Named;
 use iced::keyboard::{on_key_press, Key};
@@ -24,12 +25,19 @@ async fn main() -> iced::Result {
     MIGRATOR.run(&pool).await.unwrap();
     let product_service = Arc::new(ProductService::new(pool.clone()));
     let product_purchase_service = Arc::new(ProductPurchaseService::new(pool.clone()));
+    let product_sale_service = Arc::new(ProductSaleService::new(pool.clone()));
 
     iced::application("Teste", State::update, State::view)
         .subscription(State::subscription)
         .theme(State::theme)
         .centered()
-        .run_with(|| State::new(product_purchase_service, product_service))
+        .run_with(|| {
+            State::new(
+                product_purchase_service,
+                product_sale_service,
+                product_service,
+            )
+        })
 }
 
 #[derive(Debug, Clone)]
@@ -50,21 +58,24 @@ enum Screen {
 struct State {
     screen: Screen,
     product_purchase_service: Arc<ProductPurchaseService>,
+    product_sale_service: Arc<ProductSaleService>,
     product_service: Arc<ProductService>,
 }
 
 impl State {
     fn new(
         product_purchase_service: Arc<ProductPurchaseService>,
+        product_sale_service: Arc<ProductSaleService>,
         product_service: Arc<ProductService>,
     ) -> (Self, Task<Message>) {
         (
             Self {
-                screen: Screen::AddPurchase(screens::add_purchase::State::new(
-                    product_purchase_service.clone(),
+                screen: Screen::Home(screens::home::State::new(
                     product_service.clone(),
+                    product_sale_service.clone(),
                 )),
                 product_purchase_service,
+                product_sale_service,
                 product_service,
             },
             Task::none(),
@@ -108,7 +119,10 @@ impl State {
             }
 
             Message::NavigateToHome => {
-                self.screen = Screen::Home(screens::home::State::new(self.product_service.clone()));
+                self.screen = Screen::Home(screens::home::State::new(
+                    self.product_service.clone(),
+                    self.product_sale_service.clone(),
+                ));
             }
             Message::NavigateToAddPurchase => {
                 self.screen = Screen::AddPurchase(screens::add_purchase::State::new(

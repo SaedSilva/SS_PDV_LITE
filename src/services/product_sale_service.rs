@@ -30,7 +30,7 @@ impl ProductSaleService {
             } else if let Some(existing_product) =
                 ProductRepository::find_by_id(&mut *tx, product.id).await?
             {
-                product.quantity -= existing_product.quantity;
+                product.quantity = existing_product.quantity - product.quantity;
                 if product.quantity < 0 {
                     return Err(anyhow!("Insufficient stock for product ID {}", product.id));
                 }
@@ -45,9 +45,9 @@ impl ProductSaleService {
                     0,
                     product_id,
                     sale_id,
+                    product.price_sale,
                     product.quantity,
-                    product.price_purchase,
-                    product.quantity * product.price_purchase,
+                    product.quantity * product.price_sale,
                     now,
                 ),
             )

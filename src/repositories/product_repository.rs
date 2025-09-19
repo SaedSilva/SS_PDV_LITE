@@ -88,7 +88,7 @@ impl ProductRepository {
             "
             SELECT id, name, price_sale, price_purchase, quantity, ean, created_at, updated_at
             FROM tb_product
-            WHERE name LIKE ?
+            WHERE quantity > 0 AND name LIKE ?
             LIMIT 10
             ",
             name
