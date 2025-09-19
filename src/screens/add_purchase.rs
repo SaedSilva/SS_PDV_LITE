@@ -75,7 +75,7 @@ impl State {
         }
     }
 
-    pub fn view(&self) -> Element<Message> {
+    pub fn view(&self) -> Element<'_, Message> {
         if (self.show_search) {
             self.search()
         } else {
