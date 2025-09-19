@@ -4,6 +4,7 @@ mod helpers;
 mod repositories;
 mod screens;
 mod services;
+mod components;
 
 use crate::services::product_purchase_service::ProductPurchaseService;
 use crate::services::product_service::ProductService;
@@ -82,8 +83,8 @@ impl State {
                 .padding(16),
             horizontal_rule(1),
             row![
-                button("(F1) INICIO"),
-                button("(F2) PRODUTOS"),
+                button("(F1) INICIO").on_press(Message::NavigateToHome),
+                button("(F2) PRODUTOS").on_press(Message::NavigateToAddPurchase),
                 button("(F3) ESTOQUE"),
                 button("(F4) FINANCEIRO"),
             ]
@@ -107,7 +108,7 @@ impl State {
             }
 
             Message::NavigateToHome => {
-                self.screen = Screen::Home(screens::home::State::default());
+                self.screen = Screen::Home(screens::home::State::new(self.product_service.clone()));
             }
             Message::NavigateToAddPurchase => {
                 self.screen = Screen::AddPurchase(screens::add_purchase::State::new(
