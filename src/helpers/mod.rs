@@ -1,7 +1,6 @@
 const ONE_VALUE_I64: i64 = 100;
 const ONE_VALUE_F64: f64 = 100.0;
 
-
 pub fn format_int_to_decimal(valor: i64) -> String {
     let part_int = valor / ONE_VALUE_I64;
     let part_float = (valor % ONE_VALUE_I64).abs();
