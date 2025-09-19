@@ -223,7 +223,7 @@ impl State {
         Task::none()
     }
 
-    fn product_list(&self) -> Element<Message> {
+    fn product_list(&self) -> Element<'_, Message> {
         let header = row![
             text("").width(Length::Fixed(REMOVE_BUTTON_WIDTH)),
             text("ID").width(Length::Fixed(ID_WIDTH)),
@@ -283,7 +283,7 @@ impl State {
         .into()
     }
 
-    fn search(&self) -> Element<Message> {
+    fn search(&self) -> Element<'_, Message> {
         let mut products = column![];
 
         for product in &self.search_products {

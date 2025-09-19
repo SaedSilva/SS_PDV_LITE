@@ -386,6 +386,12 @@ where
         });
     }
 
+    pub fn clear_text(&self) {
+        self.with_inner_mut(|inner| {
+            inner.value.clear();
+        });
+    }
+
     fn value(&self) -> String {
         let inner = self.inner.borrow();
 

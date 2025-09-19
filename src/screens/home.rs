@@ -67,6 +67,8 @@ impl State {
             Message::SelectProduct(product) => {
                 self.products.push(product);
                 self.search_bar = String::new();
+                self.search_bar_products.clear_text();
+                return Task::done(Message::OnSearchBarChange(String::new()));
             }
             Message::SearchedProducts(products) => {
                 let items: Vec<ProductItem> = products
