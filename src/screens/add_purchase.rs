@@ -1,11 +1,14 @@
 use crate::entities::product::Product;
-use crate::helpers::{format_int_to_decimal, validate_float, validate_float_range, validate_int};
+use crate::helpers::{
+    f64_to_i64, format_int_to_decimal, i64_to_f64, validate_float, validate_float_range,
+    validate_int,
+};
 use crate::services::product_purchase_service::ProductPurchaseService;
 use crate::services::product_service::ProductService;
+use chrono::Local;
 use iced::widget::{button, column, horizontal_space, row, scrollable, text, text_input};
 use iced::{Alignment, Element, Length, Task};
 use std::sync::Arc;
-use chrono::Local;
 
 const REMOVE_BUTTON_WIDTH: f32 = 30.0;
 const ID_WIDTH: f32 = 50.0;
@@ -88,7 +91,9 @@ impl State {
                         text("TOTAL: "),
                         text(self.total().clone()),
                         button("FINALIZAR COMPRA").on_press(Message::FinishPurchase)
-                    ].spacing(8).align_y(Alignment::Center),
+                    ]
+                    .spacing(8)
+                    .align_y(Alignment::Center),
                 ]
             ]
             .spacing(16)
@@ -364,17 +369,17 @@ impl ProductItem {
         Product::new(
             self.id.unwrap_or(0),
             self.name.clone(),
-            (price_sale * 100.0) as i64,
-            (price_purchase * 100.0) as i64,
+            f64_to_i64(price_sale),
+            f64_to_i64(price_purchase),
             quantity,
             self.ean.clone(),
-            Local::now().naive_local()
+            Local::now().naive_local(),
         )
     }
 
     fn from_product(product: &Product) -> Self {
-        let price_sale = product.price_sale as f64 / 100.0;
-        let price_purchase = product.price_purchase as f64 / 100.0;
+        let price_sale = i64_to_f64(product.price_sale);
+        let price_purchase = i64_to_f64(product.price_purchase);
         let percentual = if price_purchase == 0.0 {
             0.0
         } else {
@@ -401,7 +406,7 @@ fn calculate_total(product: &ProductItem) -> String {
         .replace(",", ".")
         .parse::<f64>()
         .unwrap_or(0.0);
-    let total = (quantity * price_unit * 100.0) as i64;
+    let total = f64_to_i64(quantity * price_unit);
     format_int_to_decimal(total)
 }
 
@@ -444,6 +449,6 @@ fn calculate_total_sale(product: &ProductItem) -> String {
         .replace(",", ".")
         .parse::<f64>()
         .unwrap_or(0.0);
-    let total_sale = (quantity * price_sale * 100.0) as i64;
+    let total_sale = f64_to_i64(quantity * price_sale);
     format_int_to_decimal(total_sale)
 }
